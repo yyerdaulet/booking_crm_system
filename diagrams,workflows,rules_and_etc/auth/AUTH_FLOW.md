@@ -155,3 +155,129 @@
 └────────────────────────────┘
 ```
 
+# EMAIL VERIFICATION + RESEND FLOW
+
+```
+┌────────────────────────────┐
+│     POST /auth/register    │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Create User                │
+│ emailVerified = false      │
+│ generate verificationToken │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Send Verification Email    │
+│ (token included)           │
+└──────────────┬─────────────┘
+               │
+               ▼
+        USER IGNORES EMAIL
+               │
+               ▼
+
+┌────────────────────────────┐
+│ POST /auth/email/resend    │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────────────┐
+│ Check user by email               │
+│ If already verified → STOP        │
+│ Generate NEW verificationToken    │
+│ Replace old token                 │
+└──────────────┬─────────────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ Send NEW verification email │
+└──────────────┬─────────────┘
+               │
+               ▼
+
+┌────────────────────────────┐
+│ POST /auth/email/verify    │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────────────┐
+│ Validate verificationToken         │
+│ Match user                         │
+└──────────────┬─────────────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ emailVerified = true       │
+│ verificationToken = null    │
+└──────────────┬─────────────┘
+               │
+               ▼
+┌────────────────────────────┐
+│ EMAIL VERIFIED SUCCESS     │
+└────────────────────────────┘
+```
+
+
+# PASSWORD CHANGE FLOW (AUTHENTICATED USER)
+
+```text
+┌──────────────────────────────┐
+│ POST /auth/login             │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ User authenticated           │
+│ Access Token issued          │
+└──────────────┬───────────────┘
+               │
+               ▼
+        USER IS LOGGED IN
+               │
+               ▼
+
+┌──────────────────────────────┐
+│ POST /auth/password/change   │
+│ Authorization: Bearer TOKEN  │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌────────────────────────────────────────┐
+│ Validate access token                  │
+│ Extract userId                        │
+│ Verify current password               │
+└──────────────┬─────────────────────────┘
+               │
+               ▼
+┌────────────────────────────────────────┐
+│ Validate new password rules           │
+│ (length, complexity, etc.)            │
+└──────────────┬─────────────────────────┘
+               │
+               ▼
+┌────────────────────────────────────────┐
+│ Hash new password                     │
+│ Update passwordHash in DB            │
+└──────────────┬─────────────────────────┘
+               │
+               ▼
+┌────────────────────────────────────────┐
+│ Invalidate all refresh tokens        │
+│ (force re-login on all devices)      │
+└──────────────┬─────────────────────────┘
+               │
+               ▼
+┌────────────────────────────────────────┐
+│ Optional: send security email         │
+│ "Password changed successfully"       │
+└──────────────┬─────────────────────────┘
+               │
+               ▼
+┌────────────────────────────────────────┐
+│ RESPONSE: SUCCESS                     │
+└────────────────────────────────────────┘
+```

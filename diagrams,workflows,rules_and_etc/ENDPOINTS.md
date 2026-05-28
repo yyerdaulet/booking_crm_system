@@ -1,22 +1,6 @@
 # CRM ENDPOINTS FOR BACKEND
 ___
 
-## SECURITY ENDPOINTS
-
-```
-POST /auth/register 
-POST /auth/login 
-POST /auth/email/verify
-POST /auth/email/resend
-POST /auth/refresh
-POST /auth/logout
-POST /auth/password/forgot
-
-GET  /auth/email/verified
-GET  /auth/me
-```
-___
-
 ## BUSINESS LOGIC ENDPOINTS
 
 ### ROLE : CLIENT
